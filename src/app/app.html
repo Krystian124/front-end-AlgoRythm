@@ -1,87 +1,109 @@
-<!DOCTYPE html>
-<html lang="pl">
+<header class="header">
+  <div class="logo">RubikAlgo</div>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rubik Algorithms</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
+  <nav class="nav">
+    <select [value]="selectedCube()" (change)="onFilterChange('cube', $event)">
+      @for (cube of cubeTypes; track cube) {
+        <option [value]="cube">{{ cube }}</option>
+      }
+    </select>
 
-<body data-theme="dark">
+    <select [value]="selectedCategory()" (change)="onFilterChange('category', $event)">
+      @for (category of categories; track category) {
+        <option [value]="category">{{ category }}</option>
+      }
+    </select>
 
-  <header class="header">
-    <div class="logo">RubikAlgo</div>
+    <!-- AUTHENTICATION UI -->
+    @if (api.currentUser()) {
+      <button class="theme-btn" style="background:var(--accent);color:#fff;" (click)="showAddAlgoModal.set(true)">
+        + Dodaj Algorytm
+      </button>
+      <span style="font-size:13px;opacity:.8; margin: 0 8px;">👤 {{ api.currentUser()?.username }}</span>
+      <button class="theme-btn" (click)="logout()">Wyloguj</button>
+    } @else {
+      <button class="theme-btn" (click)="showAuthModal.set(true)">🔐 Zaloguj</button>
+    }
 
-    <nav class="nav">
-      <select>
-        <option value="2x2">2x2</option>
-        <option value="3x3" selected>3x3</option>
-        <option value="4x4">4x4</option>
-      </select>
+    <!-- THEME TOGGLE -->
+    <button class="theme-btn" (click)="toggleTheme()">
+      {{ isDarkMode() ? '☀️ / 🌙' : '🌙 / ☀️' }}
+    </button>
+  </nav>
+</header>
 
-      <select>
-        <option value="1 warstwa">1 warstwa</option>
-        <option value="Ostatnia warstwa">Ostatnia warstwa</option>
-        <option value="Całość" selected>Całość</option>
-      </select>
+<main class="container">
+  <!-- ALGORYTMY -->
+  <section class="panel">
+    <h2>Algorytmy</h2>
 
-      <!-- THEME TOGGLE -->
-      <button id="themeToggle" class="theme-btn">🌙 / ☀️</button>
-    </nav>
-  </header>
-
-  <main class="container">
-
-    <!-- ALGORYTMY -->
-    <section class="panel">
-      <h2>Algorytmy</h2>
-
-      <div class="grid">
-        <!-- Dane z bazy danych zostaną wstawione tutaj przez script.js -->
+    <div class="grid">
+      @if (loadingAlgos()) {
         <div class="card">
           <h3>Ładowanie...</h3>
           <p>Łączenie z bazą danych kostka_rubika...</p>
         </div>
-      </div>
-    </section>
-
-    <!-- SŁOWNIK -->
-    <section class="panel">
-      <h2>Słownik ruchów</h2>
-
-      <div class="dict">
-        <div class="media dict-img">
-          GRAFIKA RUCHÓW KOSTKI<br>
-          600x300 px (SVG / PNG)
+      } @else if (algorithms().length === 0) {
+        <div class="card">
+          <h3>Brak wyników</h3>
+          <p>Nie znaleziono algorytmów dla wybranych filtrów.</p>
         </div>
+      } @else {
+        @for (algo of algorithms(); track algo.id) {
+          <div class="card">
+            <h3>{{ algo.name }}</h3>
+            <p>{{ algo.description || '' }}</p>
+            <div class="media" [ngClass]="'anim-' + (algo.animationType === '2d' ? '2d' : '3d')">
+              <span style="font-size:11px;opacity:.6;">
+                {{ algo.cubeSize }} · {{ algo.category || '—' }}
+                @if (algo.moves) {
+                  <br><code>{{ algo.moves }}</code>
+                }
+                <br>{{ (algo.animationType || '3d') | uppercase }} ANIMATION
+              </span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
 
-        <div class="dict-list">
-          <div><b>R</b> – prawa ściana w górę</div>
-          <div><b>R'</b> – prawa ściana w dół</div>
-          <div><b>L</b> – lewa ściana</div>
-          <div><b>U</b> – góra</div>
-          <div><b>F</b> – przód</div>
-          <div><b>B</b> – tył</div>
-        </div>
+  <!-- SŁOWNIK -->
+  <section class="panel">
+    <h2>Słownik ruchów</h2>
+
+    <div class="dict">
+      <div class="media dict-img">
+        GRAFIKA RUCHÓW KOSTKI<br>
+        600x300 px (SVG / PNG)
       </div>
-    </section>
 
-    <!-- HERO / BANNER -->
-    <section class="panel hero">
-      <div class="media hero-img">
-        HERO ANIMATION / ROTATING CUBE<br>
-        900x400 px
+      <div class="dict-list">
+        @for (item of dictionaryMoves; track item.move) {
+          <div><b>{{ item.move }}</b> – {{ item.desc }}</div>
+        }
       </div>
-    </section>
+    </div>
+  </section>
 
-  </main>
+  <!-- HERO / BANNER -->
+  <section class="panel hero">
+    <div class="media hero-img">
+      HERO ANIMATION / ROTATING CUBE<br>
+      900x400 px
+    </div>
+  </section>
+</main>
 
-  <footer class="footer">
-    RubikAlgo © 2026
-  </footer>
+<footer class="footer">
+  RubikAlgo © 2026
+</footer>
 
-  <script src="script.js"></script>
-</body>
+<!-- MODALS -->
+@if (showAuthModal()) {
+  <app-auth-modal (close)="showAuthModal.set(false)"></app-auth-modal>
+}
 
-</html>
+@if (showAddAlgoModal()) {
+  <app-add-algo-modal (close)="onAlgoAdded($event)"></app-add-algo-modal>
+}

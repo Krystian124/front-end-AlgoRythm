@@ -1,1 +1,59 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+    --bg: #0e0f13;
+    --panel: #171922;
+    --card: #1f2330;
+    --text: #e6e6e6;
+    --accent: #6c8cff;
+    --border: #2a2f3d;
+}
+
+/* LIGHT THEME */
+body[data-theme="light"] {
+    --bg: #f5f6fa;
+    --panel: #ffffff;
+    --card: #f0f2f7;
+    --text: #111;
+    --accent: #3b5bff;
+    --border: #d7dbe7;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: 0.3s;
+}
+
+/* MODALS */
+.modal-container { position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center; }
+.modal-backdrop { position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px); }
+.modal-box {
+  position:relative;background:var(--panel);border:1px solid var(--border);
+  border-radius:16px;padding:32px;width:360px;max-width:95vw;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);animation:slideUp .25s ease;
+}
+@keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal-box h2 { margin:0 0 20px;font-size:22px;color:var(--accent); }
+.modal-tabs { display:flex;gap:8px;margin-bottom:20px; }
+.tab-btn { flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);
+            background:var(--card);color:var(--text);cursor:pointer;transition:.2s; }
+.tab-btn.active { background:var(--accent);color:#fff;border-color:var(--accent); }
+.auth-form { display:flex;flex-direction:column;gap:12px; }
+.auth-form label { display:flex;flex-direction:column;gap:4px;font-size:13px;opacity:.8; }
+.auth-form input, .auth-form select, .auth-form textarea {
+  padding:10px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);font-size:14px;
+}
+.auth-form button[type=submit] {
+  padding:11px;border-radius:8px;border:none;background:var(--accent);
+  color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;
+}
+.auth-form button[type=submit]:hover { opacity:.85; }
+.auth-error { font-size:12px;color:#ff6b6b;min-height:16px;margin:0; }
+.close-btn {
+  position:absolute;top:12px;right:14px;background:none;border:none;
+  font-size:18px;color:var(--text);cursor:pointer;opacity:.6;
+}
+.close-btn:hover { opacity:1; }
