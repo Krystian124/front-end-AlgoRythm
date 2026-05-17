@@ -90,6 +90,7 @@ export class App implements OnInit {
 
   logout() {
     this.api.clearAuth();
+    this.loadAlgorithms();
   }
 
   onAlgoAdded(added: boolean) {
