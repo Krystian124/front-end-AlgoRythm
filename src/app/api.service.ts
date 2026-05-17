@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 
 export interface User {
   id: number;
@@ -30,7 +30,7 @@ export class ApiService {
   
   private getSavedUser(): User | null {
     const userStr = localStorage.getItem('rubik_user');
-    if (userStr) {
+    if (userStr && userStr !== 'undefined') {
       try {
         return JSON.parse(userStr);
       } catch (e) {
@@ -49,6 +49,7 @@ export class ApiService {
   }
 
   clearAuth() {
+    console.log('[API] Wylogowywanie użytkownika: czyszczenie sesji i tokenu z localStorage');
     localStorage.removeItem('rubik_token');
     localStorage.removeItem('rubik_user');
     this.currentUser.set(null);
@@ -63,33 +64,55 @@ export class ApiService {
   }
 
   getAlgorithms(cubeSize?: string, category?: string): Observable<Algorithm[]> {
+    console.log(`[API] Pobieranie algorytmów z filtrami: cubeSize="${cubeSize || 'wszystkie'}", category="${category || 'wszystkie'}"`);
     const params: any = {};
     if (cubeSize) params.cubeSize = cubeSize;
     if (category) params.category = category;
 
-    return this.http.get<Algorithm[]>(`${this.API_URL}/algorithms`, { 
+    return this.http.get<any>(`${this.API_URL}/algorithms`, { 
       params, 
       headers: this.getHeaders() 
-    });
+    }).pipe(
+      map(res => {
+        console.log(`[API] Pomyślnie pobrano algorytmy. Liczba rekordów: ${res.data?.length || 0}`);
+        return res.data || [];
+      })
+    );
   }
 
   login(credentials: any): Observable<any> {
-    return this.http.post(`${this.API_URL}/auth/login`, credentials).pipe(
-      tap((res: any) => {
-        this.setToken(res.access_token);
-        localStorage.setItem('rubik_user', JSON.stringify(res.user));
-        this.currentUser.set(res.user);
+    console.log(`[API] Próba logowania dla emailu: ${credentials.email}`);
+    return this.http.post<any>(`${this.API_URL}/auth/login`, credentials).pipe(
+      map(res => res.data),
+      tap((data: any) => {
+        console.log(`[API] Zalogowano pomyślnie. Zapisuję sesję dla użytkownika:`, data.user);
+        this.setToken(data.access_token);
+        localStorage.setItem('rubik_user', JSON.stringify(data.user));
+        this.currentUser.set(data.user);
       })
     );
   }
 
   register(data: any): Observable<any> {
-    return this.http.post(`${this.API_URL}/auth/register`, data);
+    console.log(`[API] Próba rejestracji użytkownika: username="${data.username}", email="${data.email}"`);
+    return this.http.post<any>(`${this.API_URL}/auth/register`, data).pipe(
+      map(res => {
+        console.log('[API] Rejestracja zakończona sukcesem. Odpowiedź serwera:', res.data);
+        return res.data;
+      })
+    );
   }
 
   addAlgorithm(algo: any): Observable<any> {
-    return this.http.post(`${this.API_URL}/algorithms`, algo, { 
+    console.log(`[API] Próba dodania nowego algorytmu: name="${algo.name}", cubeSize="${algo.cubeSize}", category="${algo.category}"`);
+    return this.http.post<any>(`${this.API_URL}/algorithms`, algo, { 
       headers: this.getHeaders() 
-    });
+    }).pipe(
+      map(res => {
+        console.log('[API] Algorytm dodany pomyślnie. Odpowiedź serwera:', res.data);
+        return res.data;
+      })
+    );
   }
 }
+

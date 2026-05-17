@@ -31,6 +31,7 @@ export class App implements OnInit {
 
   algorithms = signal<Algorithm[]>([]);
   loadingAlgos = signal(true);
+  selectedAlgorithm = signal<Algorithm | null>(null);
   
   showAuthModal = signal(false);
   showAddAlgoModal = signal(false);
@@ -69,12 +70,22 @@ export class App implements OnInit {
       next: (algos) => {
         this.algorithms.set(algos);
         this.loadingAlgos.set(false);
+        if (algos.length > 0) {
+          this.selectedAlgorithm.set(algos[0]);
+        } else {
+          this.selectedAlgorithm.set(null);
+        }
       },
       error: (err) => {
         console.error('Nie można załadować algorytmów z API', err);
         this.loadingAlgos.set(false);
+        this.selectedAlgorithm.set(null);
       }
     });
+  }
+
+  selectAlgorithm(algo: Algorithm) {
+    this.selectedAlgorithm.set(algo);
   }
 
   logout() {
