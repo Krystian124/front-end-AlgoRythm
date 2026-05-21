@@ -78,14 +78,7 @@ import { ApiService, Scheme } from './api.service';
             }
           </div>
 
-          <label>Dodatkowe ruchy (notacja - opcjonalnie)
-            <input 
-              type="text" 
-              [(ngModel)]="algo.moves" 
-              name="moves" 
-              placeholder="np. R U R' U' (poza głównymi schematami)"
-            >
-          </label>
+
           
           <label>Opis<textarea [(ngModel)]="algo.description" name="description" rows="2"></textarea></label>
           
@@ -290,12 +283,15 @@ export class AddAlgoModalComponent implements OnInit {
     // Użyj pierwszego schematu z sekwencji jako główny
     const mainScheme = this.schemesSequence()[0];
     
+    // Zapisz sekwencję ID schematów w kolumnie moves
+    const schemeIdsSequence = this.schemesSequence().map(s => s.id).join(',');
+    
     const submissionData = {
       name: this.algo.name,
       cubeSize: this.algo.cubeSize,
       category: this.algo.category,
       schemeId: mainScheme.id,
-      moves: this.algo.moves || '',
+      moves: schemeIdsSequence,
       description: this.algo.description
     };
 

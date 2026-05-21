@@ -1,6 +1,6 @@
 import { Component, signal, Inject, Renderer2, OnInit } from '@angular/core';
 import { DOCUMENT, CommonModule } from '@angular/common';
-import { ApiService, Algorithm } from './api.service';
+import { ApiService, Algorithm, Scheme } from './api.service';
 import { AuthModalComponent } from './auth-modal.component';
 import { AddAlgoModalComponent } from './add-algo-modal.component';
 
@@ -13,7 +13,7 @@ import { AddAlgoModalComponent } from './add-algo-modal.component';
 })
 export class App implements OnInit {
   isDarkMode = signal(true);
-  
+
   cubeTypes = ['2x2', '3x3', '4x4'];
   selectedCube = signal('3x3');
 
@@ -31,10 +31,11 @@ export class App implements OnInit {
   ];
 
   algorithms = signal<Algorithm[]>([]);
+  allSchemes = signal<Scheme[]>([]);
   loadingAlgos = signal(true);
   selectedAlgorithm = signal<Algorithm | null>(null);
   selectedSchemeBlock = signal<string | null>(null);  // Schemat wybrany do wyświetlenia ruchów
-  
+
   showAuthModal = signal(false);
   showAddAlgoModal = signal(false);
 
@@ -49,7 +50,22 @@ export class App implements OnInit {
   }
 
   ngOnInit() {
-    this.loadAlgorithms();
+    this.loadSchemes();
+  }
+
+  loadSchemes() {
+    this.api.getSchemes().subscribe({
+      next: (schemes) => {
+        this.allSchemes.set(schemes);
+        // Ładuj algorytmy DOPIERO po załadowaniu schematów
+        this.loadAlgorithms();
+      },
+      error: (err) => {
+        console.error('Nie można załadować schematów z API', err);
+        // Załaduj algorytmy nawet jeśli schematy się nie załadowały
+        this.loadAlgorithms();
+      }
+    });
   }
 
   toggleTheme() {
@@ -95,10 +111,41 @@ export class App implements OnInit {
     this.selectedSchemeBlock.set(movesNotation);
   }
 
+  getSelectedMove(): string | null {
+    const block = this.selectedSchemeBlock();
+    if (!block) return null;
+    // Format: "scheme.id-$index-move"
+    const parts = block.split('-');
+    return parts[parts.length - 1] || null;
+  }
+
+  getVideoSrc(): string {
+    const selectedMove = this.getSelectedMove();
+    if (selectedMove) {
+      // Spróbuj wideo dla konkretnego ruchu
+      return `assets/animations/moves/${selectedMove.toLowerCase()}.mp4`;
+    }
+    // Wpadnij na wideo algorytmu
+    return `assets/animations/${(this.selectedAlgorithm()?.name?.toLowerCase() || 'default')}.mp4`;
+  }
+
   getSchemeMovesArray(): string[] {
     const scheme = this.selectedAlgorithm()?.scheme;
     if (!scheme) return [];
     return scheme.moves.split(' ').filter(m => m.trim().length > 0);
+  }
+
+  getSelectedAlgorithmSchemes(): Scheme[] {
+    const algo = this.selectedAlgorithm();
+    if (!algo || !algo.moves) return [];
+    const ids = algo.moves.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+    return ids.map(id => this.allSchemes().find(s => s.id === id)).filter((s): s is Scheme => !!s);
+  }
+
+  getAlgorithmSchemes(algo: Algorithm): Scheme[] {
+    if (!algo || !algo.moves) return [];
+    const ids = algo.moves.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+    return ids.map(id => this.allSchemes().find(s => s.id === id)).filter((s): s is Scheme => !!s);
   }
 
   logout() {

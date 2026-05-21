@@ -52,8 +52,12 @@
         @for (algo of algorithms(); track algo.id) {
           <div class="card" [class.selected]="selectedAlgorithm()?.id === algo.id" (click)="selectAlgorithm(algo)">
             <h3>{{ algo.name }}</h3>
-            @if (algo.moves) {
-              <h2 class="card-moves">{{ algo.moves }}</h2>
+            @if (getAlgorithmSchemes(algo).length > 0) {
+              <div class="card-schemes">
+                @for (scheme of getAlgorithmSchemes(algo); track scheme.id) {
+                  <span class="card-scheme-tag">{{ scheme.name }}</span>
+                }
+              </div>
             }
             <p>{{ algo.description || '' }}</p>
             <div class="media" [ngClass]="'anim-' + (algo.animationType === '2d' ? '2d' : '3d')">
@@ -77,34 +81,51 @@
         @if (selectedAlgorithm()) {
           <div class="dict-top-left">{{ selectedAlgorithm()?.name }}</div>
           <div class="dict-content">
-            <!-- SCHEMAT JAKO BLOKI (80% wysokości) -->
-            @if (selectedAlgorithm()?.scheme) {
-              <div class="scheme-blocks-container">
-                <div class="scheme-name">{{ selectedAlgorithm()?.scheme?.name }}</div>
-                <div class="scheme-blocks">
-                  @for (move of getSchemeMovesArray(); track $index) {
-                    <button 
-                      type="button"
-                      class="scheme-block"
-                      [class.active]="selectedSchemeBlock() === move"
-                      (click)="selectSchemeBlock(move)"
-                    >
-                      {{ move }}
-                    </button>
+            <!-- SCHEMAT - 70% WYSOKOŚCI -->
+            <div class="dict-scheme-section">
+              @if (getSelectedAlgorithmSchemes().length > 0) {
+                <div class="scheme-blocks-container">
+                  @for (scheme of getSelectedAlgorithmSchemes(); track scheme.id) {
+                    <div class="scheme-container-70">
+                      <div class="scheme-sequence-row">
+                        <div class="scheme-name">
+                          {{ scheme.name }}
+                        </div>
+                        <div class="scheme-blocks">
+                          @for (move of scheme.moves.split(' '); track $index) {
+                            @if (move.trim().length > 0) {
+                              <button 
+                                type="button"
+                                class="scheme-block"
+                                [class.active]="selectedSchemeBlock() === (scheme.id + '-' + $index + '-' + move)"
+                                (click)="selectSchemeBlock(scheme.id + '-' + $index + '-' + move)"
+                              >
+                                {{ move }}
+                              </button>
+                            }
+                          }
+                        </div>
+                      </div>
+                    </div>
                   }
                 </div>
-                @if (selectedSchemeBlock()) {
-                  <div class="scheme-moves-detail">
-                    <strong>Ruch:</strong> {{ selectedSchemeBlock() }}
-                  </div>
-                }
-              </div>
-            } @else {
-              <!-- Fallback na zwykły text jeśli brak schematu -->
-              <h1 class="dict-moves">{{ selectedAlgorithm()?.moves || 'Brak wpisanych ruchów' }}</h1>
-            }
-            <p class="dict-desc">{{ selectedAlgorithm()?.description || 'Brak dodatkowego opisu algorytmu.' }}</p>
-            <span class="dict-badge">{{ selectedAlgorithm()?.cubeSize }} · {{ selectedAlgorithm()?.category }}</span>
+              } @else {
+                <div class="scheme-empty">
+                  Brak wpisanych schematów dla tego algorytmu
+                </div>
+              }
+            </div>
+
+            <!-- SZCZEGÓŁY RUCHÓW - 30% WYSOKOŚCI -->
+            <div class="dict-details-section">
+              @if (selectedSchemeBlock(); as block) {
+                <div class="scheme-moves-detail">
+                  <strong>Ruch:</strong> {{ block.split('-').pop() }}
+                </div>
+              }
+              <p class="dict-desc">{{ selectedAlgorithm()?.description || 'Brak dodatkowego opisu algorytmu.' }}</p>
+              <span class="dict-badge">{{ selectedAlgorithm()?.cubeSize }} · {{ selectedAlgorithm()?.category }}</span>
+            </div>
           </div>
         } @else {
           <div class="dict-placeholder">
@@ -128,7 +149,7 @@
     <div class="media hero-img" style="padding:0;overflow:hidden;background:#050508;border-style:solid;position:relative;">
       @if (selectedAlgorithm()) {
         <video 
-          [src]="'assets/animations/' + (selectedAlgorithm()?.name?.toLowerCase() || 'default') + '.mp4'" 
+          [src]="getVideoSrc()" 
           autoplay 
           loop 
           muted 
@@ -136,7 +157,13 @@
           controls
           style="width: 100%; height: 100%; object-fit: contain;">
         </video>
-        <div class="video-overlay-badge">{{ selectedAlgorithm()?.name }} ({{ selectedAlgorithm()?.cubeSize }})</div>
+        <div class="video-overlay-badge">
+          @if (getSelectedMove()) {
+            Ruch: {{ getSelectedMove() }} · {{ selectedAlgorithm()?.name }}
+          } @else {
+            {{ selectedAlgorithm()?.name }} ({{ selectedAlgorithm()?.cubeSize }})
+          }
+        </div>
       } @else {
         <div style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #888;">
           <h3>Wybierz algorytm, aby odtworzyć animację</h3>
