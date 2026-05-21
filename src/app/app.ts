@@ -21,17 +21,19 @@ export class App implements OnInit {
   selectedCategory = signal('Całość');
 
   dictionaryMoves = [
-    { move: 'R', desc: 'prawa ściana w górę' },
-    { move: "R'", desc: 'prawa ściana w dół' },
-    { move: 'L', desc: 'lewa ściana' },
-    { move: 'U', desc: 'góra' },
-    { move: 'F', desc: 'przód' },
-    { move: 'B', desc: 'tył' }
+    { move: 'Legenda', desc: '→ bez apostrofu ( \' ) = ze wskazówkami zegara | z apostrofem ( \' ) = przeciwnie do wskazówek zegara' },
+    { move: 'R', desc: 'Prawa ściana - ze wskazówkami zegara' },
+    { move: "R'", desc: 'Prawa ściana - przeciwnie do wskazówek zegara' },
+    { move: 'L', desc: 'Lewa ściana - ze wskazówkami zegara' },
+    { move: "L'", desc: 'Lewa ściana - przeciwnie do wskazówek zegara' },
+    { move: 'U', desc: 'Górna ściana - ze wskazówkami zegara' },
+    { move: "U'", desc: 'Górna ściana - przeciwnie do wskazówek zegara' }
   ];
 
   algorithms = signal<Algorithm[]>([]);
   loadingAlgos = signal(true);
   selectedAlgorithm = signal<Algorithm | null>(null);
+  selectedSchemeBlock = signal<string | null>(null);  // Schemat wybrany do wyświetlenia ruchów
   
   showAuthModal = signal(false);
   showAddAlgoModal = signal(false);
@@ -86,6 +88,17 @@ export class App implements OnInit {
 
   selectAlgorithm(algo: Algorithm) {
     this.selectedAlgorithm.set(algo);
+    this.selectedSchemeBlock.set(null);  // Reset wybranego bloku
+  }
+
+  selectSchemeBlock(movesNotation: string) {
+    this.selectedSchemeBlock.set(movesNotation);
+  }
+
+  getSchemeMovesArray(): string[] {
+    const scheme = this.selectedAlgorithm()?.scheme;
+    if (!scheme) return [];
+    return scheme.moves.split(' ').filter(m => m.trim().length > 0);
   }
 
   logout() {

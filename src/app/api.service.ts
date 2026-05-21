@@ -9,6 +9,14 @@ export interface User {
   email: string;
 }
 
+export interface Scheme {
+  id: number;
+  name: string;
+  description?: string;
+  moves: string;
+  order: number;
+}
+
 export interface Algorithm {
   id: number;
   name: string;
@@ -17,6 +25,8 @@ export interface Algorithm {
   moves?: string;
   description?: string;
   animationType: string;
+  scheme?: Scheme;
+  schemeId?: number;
 }
 
 @Injectable({
@@ -75,6 +85,18 @@ export class ApiService {
     }).pipe(
       map(res => {
         console.log(`[API] Pomyślnie pobrano algorytmy. Liczba rekordów: ${res.data?.length || 0}`);
+        return res.data || [];
+      })
+    );
+  }
+
+  getSchemes(): Observable<Scheme[]> {
+    console.log('[API] Pobieranie schematów...');
+    return this.http.get<any>(`${this.API_URL}/schemes`, { 
+      headers: this.getHeaders() 
+    }).pipe(
+      map(res => {
+        console.log(`[API] Pomyślnie pobrano schematy. Liczba: ${res.data?.length || 0}`);
         return res.data || [];
       })
     );

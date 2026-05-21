@@ -77,7 +77,32 @@
         @if (selectedAlgorithm()) {
           <div class="dict-top-left">{{ selectedAlgorithm()?.name }}</div>
           <div class="dict-content">
-            <h1 class="dict-moves">{{ selectedAlgorithm()?.moves || 'Brak wpisanych ruchów' }}</h1>
+            <!-- SCHEMAT JAKO BLOKI (80% wysokości) -->
+            @if (selectedAlgorithm()?.scheme) {
+              <div class="scheme-blocks-container">
+                <div class="scheme-name">{{ selectedAlgorithm()?.scheme?.name }}</div>
+                <div class="scheme-blocks">
+                  @for (move of getSchemeMovesArray(); track $index) {
+                    <button 
+                      type="button"
+                      class="scheme-block"
+                      [class.active]="selectedSchemeBlock() === move"
+                      (click)="selectSchemeBlock(move)"
+                    >
+                      {{ move }}
+                    </button>
+                  }
+                </div>
+                @if (selectedSchemeBlock()) {
+                  <div class="scheme-moves-detail">
+                    <strong>Ruch:</strong> {{ selectedSchemeBlock() }}
+                  </div>
+                }
+              </div>
+            } @else {
+              <!-- Fallback na zwykły text jeśli brak schematu -->
+              <h1 class="dict-moves">{{ selectedAlgorithm()?.moves || 'Brak wpisanych ruchów' }}</h1>
+            }
             <p class="dict-desc">{{ selectedAlgorithm()?.description || 'Brak dodatkowego opisu algorytmu.' }}</p>
             <span class="dict-badge">{{ selectedAlgorithm()?.cubeSize }} · {{ selectedAlgorithm()?.category }}</span>
           </div>
