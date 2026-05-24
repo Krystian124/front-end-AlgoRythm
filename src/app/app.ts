@@ -24,10 +24,16 @@ export class App implements OnInit {
     { move: 'Legenda', desc: '→ bez apostrofu ( \' ) = ze wskazówkami zegara | z apostrofem ( \' ) = przeciwnie do wskazówek zegara' },
     { move: 'R', desc: 'Prawa ściana - ze wskazówkami zegara' },
     { move: "R'", desc: 'Prawa ściana - przeciwnie do wskazówek zegara' },
+    { move: 'R2', desc: 'Prawa ściana - obrót o 180°' },
     { move: 'L', desc: 'Lewa ściana - ze wskazówkami zegara' },
     { move: "L'", desc: 'Lewa ściana - przeciwnie do wskazówek zegara' },
+    { move: 'L2', desc: 'Lewa ściana - obrót o 180°' },
     { move: 'U', desc: 'Górna ściana - ze wskazówkami zegara' },
-    { move: "U'", desc: 'Górna ściana - przeciwnie do wskazówek zegara' }
+    { move: "U'", desc: 'Górna ściana - przeciwnie do wskazówek zegara' },
+    { move: 'U2', desc: 'Górna ściana - obrót o 180°' },
+    { move: 'F', desc: 'Przednia ściana - ze wskazówkami zegara' },
+    { move: "F'", desc: 'Przednia ściana - przeciwnie do wskazówek zegara' },
+    { move: 'F2', desc: 'Przednia ściana - obrót o 180°' }
   ];
 
   algorithms = signal<Algorithm[]>([]);
@@ -35,6 +41,7 @@ export class App implements OnInit {
   loadingAlgos = signal(true);
   selectedAlgorithm = signal<Algorithm | null>(null);
   selectedSchemeBlock = signal<string | null>(null);  // Schemat wybrany do wyświetlenia ruchów
+  selectedDictionaryMove = signal<string | null>(null);  // Ruch wybrany ze słownika
 
   showAuthModal = signal(false);
   showAddAlgoModal = signal(false);
@@ -111,6 +118,10 @@ export class App implements OnInit {
     this.selectedSchemeBlock.set(movesNotation);
   }
 
+  selectDictionaryMove(move: string) {
+    this.selectedDictionaryMove.set(move === this.selectedDictionaryMove() ? null : move);
+  }
+
   getSelectedMove(): string | null {
     const block = this.selectedSchemeBlock();
     if (!block) return null;
@@ -120,10 +131,18 @@ export class App implements OnInit {
   }
 
   getVideoSrc(): string {
+    // Najpierw sprawdź czy wybrany ruch ze słownika
+    const dictionaryMove = this.selectedDictionaryMove();
+    if (dictionaryMove && dictionaryMove !== 'Legenda') {
+      const safeName = dictionaryMove.replace(/'/g, '-prime');
+      return `assets/${safeName}.mkv`;
+    }
+    
     const selectedMove = this.getSelectedMove();
     if (selectedMove) {
       // Spróbuj wideo dla konkretnego ruchu
-      return `assets/animations/moves/${selectedMove.toLowerCase()}.mp4`;
+      const safeName = selectedMove.replace(/'/g, '-prime');
+      return `assets/${safeName}.mkv`;
     }
     // Wpadnij na wideo algorytmu
     return `assets/animations/${(this.selectedAlgorithm()?.name?.toLowerCase() || 'default')}.mp4`;

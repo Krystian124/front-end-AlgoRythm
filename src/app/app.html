@@ -137,7 +137,14 @@
 
       <div class="dict-list">
         @for (item of dictionaryMoves; track item.move) {
-          <div><b>{{ item.move }}</b> – {{ item.desc }}</div>
+          <div 
+            class="dict-item"
+            [class.active]="selectedDictionaryMove() === item.move && item.move !== 'Legenda'"
+            (click)="selectDictionaryMove(item.move)"
+            [style.cursor]="item.move === 'Legenda' ? 'default' : 'pointer'"
+          >
+            <b>{{ item.move }}</b> – {{ item.desc }}
+          </div>
         }
       </div>
     </div>
