@@ -17,7 +17,7 @@ export class App implements OnInit {
   cubeTypes = ['2x2', '3x3', '4x4'];
   selectedCube = signal('3x3');
 
-  categories = ['1 warstwa', 'Ostatnia warstwa', 'Całość'];
+  categories = ['1 ścianka', 'Ostatnia ścianka', 'Całość'];
   selectedCategory = signal('Całość');
 
   dictionaryMoves = [
